@@ -35,7 +35,7 @@ ShellRoot {
         model: Quickshell.screens
 
         Network {
-            required property var modelData
+            property var modelData
             screen: modelData
         }
     }

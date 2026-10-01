@@ -5,7 +5,7 @@ import QtQuick
 import "./state"
 
 PanelWindow {
-    id: root
+    id: win
 
     property var screen
 
@@ -20,22 +20,22 @@ PanelWindow {
     exclusiveZone: 0
     color: Theme.bg
 
+
     IpcHandler {
         target: "network"
 
         function toggle() {
-            NetworkState.toggle();
+            NetworkState.toggle()
         }
 
         function show() {
-            NetworkState.show();
+            NetworkState.show()
         }
 
         function hide() {
-            NetworkState.hide();
+            NetworkState.hide()
         }
     }
-
     visible: NetworkState.open
 
     // ----------------------------------------
