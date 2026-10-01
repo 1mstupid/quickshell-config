@@ -30,6 +30,14 @@ ShellRoot {
             screen: modelData
         }
     }
+    Variants {
+        model: Quickshell.screens
+
+        Network {
+            required property var modelData
+            screen: modelData
+        }
+    }
 
 
 
