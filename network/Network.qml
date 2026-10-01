@@ -1,11 +1,13 @@
-import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Io
+import QtQuick
+import "./state"
 
 PanelWindow {
     id: root
 
-    visible: NetworkState.open
+    property var screen
 
     anchors {
         right: true
@@ -22,21 +24,24 @@ PanelWindow {
         target: "network"
 
         function toggle() {
-            NetworkState.toggle()
+            NetworkState.toggle();
         }
 
         function show() {
-            NetworkState.show()
+            NetworkState.show();
         }
 
         function hide() {
-            NetworkState.hide()
+            NetworkState.hide();
         }
     }
 
-    // ------------------------------------------------------------
-    // Your existing Network code
-    // ------------------------------------------------------------
+    visible: NetworkState.open
+
+    // ----------------------------------------
+    // Everything from your existing Network
+    // below this point.
+    // ----------------------------------------
 
     property var devices: []
     property bool wifiOn: false
