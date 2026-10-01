@@ -17,28 +17,34 @@
       packages = forAllSystems (system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+
+          quickshellRuntime = with pkgs; [
+            quickshell
+            qt6.qtbase
+
+            bash
+            coreutils
+            gnugrep
+            procps
+            networkmanager
+            findutils
+            util-linux
+          ];
+
+          quickshellScript = ''
+            exec quickshell -p ${self}/shell.qml "$@"
+          '';
         in {
           default = pkgs.writeShellApplication {
             name = "quickshell";
+            runtimeInputs = quickshellRuntime;
+            text = quickshellScript;
+          };
 
-            runtimeInputs = with pkgs; [
-              # Quickshell + Qt
-              quickshell
-              qt6.qtbase
-
-              # CLI tools used by the config
-              bash
-              coreutils
-              gnugrep
-              procps
-              networkmanager
-              findutils
-              util-linux
-            ];
-
-            text = ''
-              exec quickshell -p ${self}/shell.qml "$@"
-            '';
+          qs = pkgs.writeShellApplication {
+            name = "qs";
+            runtimeInputs = quickshellRuntime;
+            text = quickshellScript;
           };
         }
       );
