@@ -19,14 +19,12 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in {
           default = pkgs.writeShellApplication {
-            name = "quickshell-config";
+            name = "quickshell";
 
             runtimeInputs = with pkgs; [
               # Quickshell + Qt
               quickshell
               qt6.qtbase
-              qt6.qtdeclarative
-              kdePackages.qtmultimedia
 
               # CLI tools used by the config
               bash
