@@ -31,7 +31,7 @@ PanelWindow {
         anchors.bottomMargin: 0
 
         radius: 0
-        color: "#000000"
+        color: Qt.alpha(Theme.bg, 0.75)
         border.width: 0
         border.color: Qt.alpha(Theme.accent, 0.35)
 
@@ -80,7 +80,6 @@ PanelWindow {
 
             Metrics {}
             Volume {}
-            Network {}
             Tray {}
             Clock {}
             Commands {}
