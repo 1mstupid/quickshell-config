@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import QtQuick
 import "./app_launcher"
+import "./network"
 import "./power_menu"
 
 ShellRoot {

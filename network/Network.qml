@@ -5,11 +5,7 @@ import Quickshell.Io
 PanelWindow {
     id: root
 
-    property var screen
-
     visible: NetworkState.open
-
-    screen: root.screen
 
     anchors {
         right: true
