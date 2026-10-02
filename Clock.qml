@@ -1,16 +1,18 @@
 import QtQuick
 import Quickshell
 
-// Date + 12-hour time (the slstatus formats), with a calendar on click.
+// Date + 12-hour time with seconds, with a calendar on click.
 BarModule {
     id: root
 
     SystemClock {
         id: clock
-        precision: SystemClock.Minutes
+        precision: SystemClock.Seconds
     }
 
-    label: Qt.formatDateTime(clock.date, "ddd MMM d") + "  " + Qt.formatDateTime(clock.date, "h:mm AP")
+    label: Qt.formatDateTime(clock.date, "ddd MMM d")
+           + "  "
+           + Qt.formatDateTime(clock.date, "h:mm:ss AP")
 
     onClicked: calendar.visible = !calendar.visible
 
