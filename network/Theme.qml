@@ -27,7 +27,7 @@ Singleton {
     readonly property string fontFamily: "JetBrainsMono Nerd Font"
 
     FileView {
-        path: root.configDir + "/polybar/colors.ini"
+        path: root.configDir + "/../.local/state/colors.ini"
         watchChanges: true
         onFileChanged: reload()
         onLoaded: root.parseIni(text())
