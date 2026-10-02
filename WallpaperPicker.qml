@@ -50,7 +50,7 @@ Popout {
         id: lister
         // no SVGs: Qt's loader chokes on ones with external references
         command: ["sh", "-c",
-            "find -L \"" + Theme.configDir + "/wallpaper\" -maxdepth 1 -type f " +
+            "find -L \"" + Theme.configDir + "/../.local/share/wallpapers\" -maxdepth 1 -type f " +
             "\\( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \\) | sort"]
         stdout: SplitParser {
             onRead: line => { if (line.trim() !== "") root._found.push(line.trim()) }
