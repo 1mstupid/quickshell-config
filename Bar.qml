@@ -117,7 +117,6 @@ PanelWindow {
 
             spacing: 6
 
-            Metrics {}
             Volume {}
             Tray {}
             Clock {}
