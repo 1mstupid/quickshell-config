@@ -107,7 +107,7 @@ Singleton {
     }
 
     FileView {
-        path: root.configDir + "../.local/state/colors.ini"
+        path: root.configDir + "/../.local/state/colors.ini"
         watchChanges: true
         onFileChanged: reload()
         onLoaded: root.parseIni(text())
