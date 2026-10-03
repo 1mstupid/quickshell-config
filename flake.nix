@@ -46,7 +46,10 @@
           qs = pkgs.writeShellApplication {
             name = "qs";
             runtimeInputs = quickshellRuntime;
-            text = quickshellScript;
+            text = ''
+                export PATH="/home/waltz/.local/bin:$PATH"
+                exec quickshell -p ${self}/shell.qml "$@"
+            '';
           };
         }
       );
