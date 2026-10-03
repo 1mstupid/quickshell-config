@@ -396,7 +396,7 @@ Popout {
         }
 
         Quickshell.execDetached(
-            [Theme.configDir + "/scripts/wallpaper-theme", root.applyingPath]
+            ["wallpaper-theme", root.applyingPath]
                 .concat(palette).concat(ansi))
         root.applyingPath = ""
         root.visible = false

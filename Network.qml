@@ -15,6 +15,6 @@ BarModule {
         if (mouse.button === Qt.RightButton)
             Quickshell.execDetached(["nm-connection-editor"])
         else
-            Quickshell.execDetached([Theme.configDir + "/scripts/network"])
+            Quickshell.execDetached(["network"])
     }
 }

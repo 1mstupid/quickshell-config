@@ -57,15 +57,6 @@ PanelWindow {
             }
         }
 
-        // Right-click empty bar = layout/tweaks picker.
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.RightButton
-
-            onClicked: layoutBtn.pickerVisible =
-                !layoutBtn.pickerVisible
-        }
-
         Row {
             id: leftCluster
 

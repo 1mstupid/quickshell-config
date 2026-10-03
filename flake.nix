@@ -22,6 +22,7 @@
             quickshell
             qt6.qtbase
 
+            maple-mono.NL-NF
             bash
             coreutils
             gnugrep

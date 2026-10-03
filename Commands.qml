@@ -301,7 +301,7 @@ BarModule {
             Repeater {
                 model: [
                     { icon: "󰑓", label: "Restart bar",
-                      run: () => Quickshell.execDetached([Theme.configDir + "/scripts/bar", "restart"]) },
+                      run: () => Quickshell.execDetached(["bar", "restart"]) },
                 ]
                 CommandRow {}
             }

@@ -19,7 +19,7 @@ Singleton {
     property string title: ""
     property string monitor: ""     // focused output name (dispatch target)
 
-    readonly property string ipc: Theme.configDir + "/scripts/mango-ipc"
+    readonly property string ipc: "mango-ipc"
     function dispatch(cmd) { Quickshell.execDetached([ipc, "dispatch", cmd]) }
 
     // --- layout: mirrors layouts[] in mango's src/layout/layout.h (symbol
@@ -140,38 +140,6 @@ Singleton {
     // gaps state file: written by the picker slider, applied on bar start
     // (a config reload resets setoption values; scripts/mango-reload asks
     // for a re-apply through the "wm" IpcHandler in shell.qml)
-    FileView {
-        path: Theme.configDir + "/mango-gaps"
-        watchChanges: true
-        onFileChanged: reload()
-        onLoaded: {
-            const v = parseInt(text())
-            if (!isNaN(v)) { root.gaps = v; root.applyGaps(v) }
-        }
-    }
-
-    // effects state file, same lifecycle as the gaps one
-    FileView {
-        path: Theme.configDir + "/mango-effects"
-        watchChanges: true
-        onFileChanged: reload()
-        onLoaded: {
-            for (const line of text().split("\n")) {
-                const [k, v] = line.split("=")
-                const val = (v ?? "").trim()
-                if (["blur", "shadows", "animations"].indexOf(k) >= 0)
-                    root[k] = val === "1"
-                else if (k === "borderpx" && !isNaN(parseInt(val)))
-                    root.borderpx = parseInt(val)
-                else if (k === "unfocused_opacity" && !isNaN(parseInt(val)))
-                    root.unfocusedOpacity = parseInt(val)
-            }
-            root.effectsFromFile = true
-            root.applyEffects()
-        }
-    }
-
-    // --- state stream ---
 
     Process {
         id: watch
@@ -226,6 +194,6 @@ Singleton {
             "-theme", Theme.configDir + "/rofi/config.rasi"])
     }
     function openPowerMenu() {
-        Quickshell.execDetached([Theme.configDir + "/scripts/power"])
+        Quickshell.execDetached(["power"])
     }
 }
