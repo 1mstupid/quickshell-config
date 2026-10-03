@@ -33,6 +33,7 @@
           ];
 
           quickshellScript = ''
+            export PATH="$HOME/.local/bin:$PATH"
             exec quickshell -p ${self}/shell.qml "$@"
           '';
         in {
