@@ -91,11 +91,11 @@ BarModule {
     function persistPomo() {
         Quickshell.execDetached(["sh", "-c",
             "printf '%s %s\\n' " + Math.round(pomoEndMs) + " " + pomoMinutes +
-            " > '" + Theme.configDir + "/pomodoro'"])
+            " > '" + "/home/waltz/.local/xdg/config/pomodoro"])
     }
 
     FileView {
-        path: Theme.configDir + "/pomodoro"
+        path: "/home/waltz/.local/xdg/config/pomodoro"
         watchChanges: true
         onFileChanged: reload()
         onLoaded: {
@@ -248,11 +248,6 @@ BarModule {
                                   ? "systemd-inhibit --what=idle --who=quickshell --why=quickshell-caffeine sleep infinity >/dev/null 2>&1 &"
                                   : "pkill -f '[w]hy=quickshell-caffeine'"])
                           } },
-                        { icon: Sys.micMuted ? "󰍭" : "󰍬",
-                          label: Sys.micMuted ? "Muted" : "Mic",
-                          active: Sys.micMuted, alert: Sys.micMuted,
-                          alt: ["pavucontrol", "-t", "4"],
-                          run: () => Sys.toggleMicMute() },
                         { icon: "󱩌", label: "Night light",
                           active: root.nightLight,
                           run: () => {
@@ -261,14 +256,6 @@ BarModule {
                                   ? "command -v wlsunset >/dev/null && (wlsunset -t 4500 -T 6500 >/dev/null 2>&1 &) || notify-send -a quickshell 'Night light' 'Install wlsunset: sudo apt install wlsunset'"
                                   : "pkill -x wlsunset"])
                           } },
-                        { icon: Sys.dndOn ? "󰂛" : "󰂚",
-                          label: "DND",
-                          active: Sys.dndOn, alert: Sys.dndOn,
-                          altFn: () => {
-                              menu.visible = false
-                              notifHistory.visible = true
-                          },
-                          run: () => Sys.toggleDnd() },
                         { icon: "󰔟",
                           label: root.pomoRunning ? "Stop" : root.pomoMinutes + " min",
                           active: root.pomoRunning,

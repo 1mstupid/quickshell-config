@@ -47,6 +47,7 @@
             name = "qs";
             runtimeInputs = quickshellRuntime;
             text = ''
+                export XDG_CONFIG_HOME="/home/waltz/.local/xdg/config";
                 export PATH="/home/waltz/.local/bin:$PATH"
                 exec quickshell -p ${self}/shell.qml "$@"
             '';
