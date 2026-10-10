@@ -22,8 +22,8 @@ PanelWindow {
     WlrLayershell.namespace: "quickshell-wallpapers"
 
     property int cardPadding: 20
-    property int cardWidth: 500
-    property int cardHeight: 281 // Increased size (maintaining 16:9 ratio)
+    property int cardWidth: 548
+    property int cardHeight: 308 // Increased size (maintaining 16:9 ratio)
 
     property var wallpapers: []
     property string applyingPath: ""
@@ -85,7 +85,10 @@ PanelWindow {
     // Background overlay with 0.8 opacity (clicking outside dismisses)
     Rectangle {
         id: overlay
+
         anchors.fill: parent
+        anchors.topMargin: 300
+        anchors.bottomMargin: 300
         color: Qt.rgba(0, 0, 0, 0.8)
         focus: true
 
@@ -145,7 +148,6 @@ PanelWindow {
             }
         }
 
-        // Horizontal Carousel Centered on Screen
         Item {
             anchors.left: parent.left
             anchors.right: parent.right

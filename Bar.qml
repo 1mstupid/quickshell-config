@@ -26,7 +26,7 @@ PanelWindow {
         id: notch
 
         readonly property real chamfer: 18
-        readonly property real collapsedWidth: 560
+        readonly property real collapsedWidth: 220
         readonly property real collapsedHeight: Theme.effectiveBarHeight
         readonly property real expandedHeight: 390
 

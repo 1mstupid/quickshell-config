@@ -144,8 +144,8 @@ PanelWindow {
 
         // Semi-translucent frosted panel
         color: Qt.rgba(Theme.bg.r, Theme.bg.g, Theme.bg.b, 0.8)
-        topLeftRadius: 18
-        topRightRadius: 18
+        topLeftRadius: 2
+        topRightRadius: 2
         bottomLeftRadius: 0
         bottomRightRadius: 0
         border.color: Qt.alpha(Theme.fg, 0.10)

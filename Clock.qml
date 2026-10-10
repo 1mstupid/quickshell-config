@@ -53,29 +53,10 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: Qt.formatDateTime(clock.date, "AP")
             font.family: Theme.font
-            font.pixelSize: 11
+            font.pixelSize: 12
             font.bold: true
             font.letterSpacing: 1
             color: Qt.alpha(Theme.accent, 0.8)
-        }
-
-        // Thin divider
-        Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: 1
-            height: 9
-            color: Qt.alpha(Theme.fg, 0.2)
-        }
-
-        // Date
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: Qt.formatDateTime(clock.date, "ddd dd MMM").toUpperCase()
-            font.family: Theme.font
-            font.pixelSize: 7
-            font.letterSpacing: 1.5
-            color: Qt.alpha(Theme.fg, mouse.containsMouse ? 0.9 : 0.55)
-            Behavior on color { ColorAnimation { duration: 150 } }
         }
     }
 

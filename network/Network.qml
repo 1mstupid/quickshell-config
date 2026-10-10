@@ -638,6 +638,16 @@ PanelWindow {
                 height: 24
                 radius: 8
                 color: Qt.alpha(Theme.fg, scanMa.containsMouse ? 0.18 : 0.1)
+                transform: Translate {
+                    y: NetworkState.open ? 0 : root.implicitHeight + 6
+                    Behavior on y {
+                        NumberAnimation {
+                            duration: 500
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                } 
+
                 Text {
                     anchors.centerIn: parent
                     text: win.scanning ? "scanning…" : "rescan"
