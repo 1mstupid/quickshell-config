@@ -29,7 +29,7 @@ Item {
         Text {
             id: timeText
             anchors.verticalCenter: parent.verticalCenter
-            text: Qt.formatDateTime(clock.date, "h:mm AP")
+            text: Qt.formatDateTime(clock.date, "h:mm:ss")
             font.family: Theme.font
             font.pixelSize: 12
             font.bold: true
@@ -87,8 +87,4 @@ Item {
         onClicked: calendar.visible = !calendar.visible
     }
 
-    CalendarPopup {
-        id: calendar
-        anchorItem: root
-    }
 }

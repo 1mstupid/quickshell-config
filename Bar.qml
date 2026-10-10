@@ -61,14 +61,13 @@ PanelWindow {
                 top: parent.top
                 left: parent.left
                 right: parent.right
-                topMargin: 2
+                topMargin: 6
                 leftMargin: 12
                 rightMargin: 12
             }
             height: 15 
             spacing: 12
 
-            Launcher {}
             Clock {
                 Layout.fillWidth: true
                 Layout.fillHeight: true

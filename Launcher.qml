@@ -8,7 +8,7 @@ BarModule {
     id: root
 
     icon: ""  // Debian swirl (Font Logos)
-    iconFont: "FiraCode Nerd Font"
+    iconFont: "Maple Mono NL NF"
     iconColor: Theme.accent
     onClicked: mouse => {
         if (mouse.button === Qt.RightButton)
@@ -17,10 +17,5 @@ BarModule {
             picker.applyRandom()
         else
             Wm.openLauncher()
-    }
-
-    WallpaperPicker {
-        id: picker
-        anchorItem: root
     }
 }

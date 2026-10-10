@@ -1,23 +1,39 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 
-Popout {
-    
+PanelWindow {
     id: root
 
-    // Adjusted for a horizontal carousel layout
+    visible: false
+
+    anchors {
+        top: true
+        bottom: true
+        left: true
+        right: true
+    }
+
+    color: "transparent"
+
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: root.visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.namespace: "quickshell-wallpapers"
+
     property int cardPadding: 20
-    cardWidth: 260 * 3 + cardPadding * 2 // Shows ~3 cards at once
-    cardHeight: 146 + cardPadding * 2
+    property int cardWidth: 500
+    property int cardHeight: 281 // Increased size (maintaining 16:9 ratio)
 
     property var wallpapers: []
     property string applyingPath: ""
     property bool randomPending: false
 
     onVisibleChanged: {
-        if (visible)
+        if (visible) {
             lister.running = true
+            overlay.forceActiveFocus()
+        }
     }
 
     function toggle() { visible = !visible }
@@ -66,14 +82,45 @@ Popout {
         }
     }
 
-    Item {
+    // Background overlay with 0.8 opacity (clicking outside dismisses)
+    Rectangle {
+        id: overlay
         anchors.fill: parent
+        color: Qt.rgba(0, 0, 0, 0.8)
+        focus: true
+
+        // Keyboard & Vim Navigation
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Escape) {
+                root.visible = false
+                event.accepted = true
+            } else if (event.key === Qt.Key_Left || event.text === "h") {
+                if (carousel.currentIndex > 0)
+                    carousel.currentIndex--
+                event.accepted = true
+            } else if (event.key === Qt.Key_Right || event.text === "l") {
+                if (carousel.currentIndex < carousel.count - 1)
+                    carousel.currentIndex++
+                event.accepted = true
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                if (carousel.currentIndex >= 0 && root.wallpapers.length > 0) {
+                    root.apply(root.wallpapers[carousel.currentIndex])
+                }
+                event.accepted = true
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.visible = false
+        }
 
         Canvas {
             id: canvas
-            x: 0; y: 0
-            width: 96
-            height: 54
+            x: 200; y: 30
+            width: 100
+            height: 50
+            visible: false
 
             onImageLoaded: {
                 const url = "file://" + root.applyingPath
@@ -98,75 +145,85 @@ Popout {
             }
         }
 
-        // Horizontal Carousel
-        ListView {
-            id: carousel
-            anchors.fill: parent
-            anchors.margins: root.cardPadding
-            orientation: ListView.Horizontal
-            spacing: 16
-            clip: true
-            model: root.wallpapers
+        // Horizontal Carousel Centered on Screen
+        Item {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            height: root.cardHeight + root.cardPadding * 2
 
-            // Carousel snapping behavior
-            snapMode: ListView.SnapToItem
-            preferredHighlightBegin: width / 2 - 130
-            preferredHighlightEnd: width / 2 + 130
-            highlightRangeMode: ListView.StrictlyEnforceRange
+            ListView {
+                id: carousel
+                anchors.fill: parent
+                orientation: ListView.Horizontal
+                spacing: 24
+                clip: true
+                model: root.wallpapers
 
-            delegate: Item {
-                id: cell
-                required property int index 
-                required property string modelData
-                readonly property bool busy: root.applyingPath === modelData
-                
-                width: 260
-                height: 146
-                anchors.verticalCenter: parent.verticalCenter
+                snapMode: ListView.SnapToItem
+                preferredHighlightBegin: width / 2 - root.cardWidth / 2
+                preferredHighlightEnd: width / 2 + root.cardWidth / 2
+                highlightRangeMode: ListView.StrictlyEnforceRange
+                highlightMoveDuration: 100 // Faster transition when pressing keys (default is -1)
+                flickDeceleration: 3000
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 8
-                    color: Qt.alpha(Theme.fg, 0.06)
+                delegate: Item {
+                    id: cell
+                    required property int index 
+                    required property string modelData
+                    readonly property bool busy: root.applyingPath === modelData
                     
-                    // Hover scaling effect for the carousel
-                    scale: mouse.containsMouse ? 1.05 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 150 } }
-
-                    Image {
-                        anchors.fill: parent
-                        anchors.margins: 1
-                        source: "file://" + cell.modelData
-                        sourceSize.width: 340
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        clip: true
-                        layer.enabled: true // Smooths edges on rounded clip
-                    }
+                    width: root.cardWidth
+                    height: root.cardHeight
+                    anchors.verticalCenter: parent.verticalCenter
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 8
-                        color: "transparent"
-                        border.width: cell.busy ? 3 : mouse.containsMouse ? 2 : 0
-                        border.color: cell.busy ? Theme.accent : Qt.alpha(Theme.accent, 0.8)
-
-                        SequentialAnimation on opacity {
-                            running: cell.busy
-                            loops: Animation.Infinite
-                            alwaysRunToEnd: true
-                            NumberAnimation { to: 0.4; duration: 350 }
-                            NumberAnimation { to: 1.0; duration: 350 }
+                        radius: 12
+                        color: Qt.alpha(Theme.fg, 0.06)
+                        
+                        scale: mouse.containsMouse || carousel.currentIndex === index ? 1.05 : 1.0
+                        Behavior on scale { 
+                            NumberAnimation { 
+                                duration: 10 
+                                easing.type: Easing.OutCubic 
+                            } 
                         }
-                    }
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 2
+                            source: "file://" + cell.modelData
+                            sourceSize.width: root.cardWidth * 2
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            clip: true
+                            layer.enabled: true
+                        }
 
-                    MouseArea {
-                        id: mouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: {
-                            carousel.currentIndex = index
-                            root.apply(cell.modelData)
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 12
+                            color: "transparent"
+                            border.width: cell.busy ? 3 : (mouse.containsMouse || carousel.currentIndex === index) ? 2 : 0
+                            border.color: cell.busy ? Theme.accent : Qt.alpha(Theme.accent, 0.8)
+
+                            SequentialAnimation on opacity {
+                                running: cell.busy
+                                loops: Animation.Infinite
+                                alwaysRunToEnd: true
+                                NumberAnimation { to: 0.4; duration: 120 } // Reduced from 350
+                                NumberAnimation { to: 1.0; duration: 120 } // Reduced from 350
+                            }
+                        }
+
+                        MouseArea {
+                            id: mouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                carousel.currentIndex = index
+                                root.apply(cell.modelData)
+                            }
                         }
                     }
                 }
@@ -290,9 +347,9 @@ Popout {
             }
         const priH = priC ? priC.h : bgH
         const priS = priC ? (art ? Math.min(Math.max(priC.s, 0.3), 0.85)
-                                 : Math.min(Math.max(priC.s, 0.3), 0.55)) : 0.15
+                                   : Math.min(Math.max(priC.s, 0.3), 0.55)) : 0.15
         const priL = priC ? (art ? Math.min(Math.max(priC.l, 0.45), 0.75)
-                                 : Math.min(Math.max(priC.l, 0.62), 0.78)) : 0.7
+                                   : Math.min(Math.max(priC.l, 0.62), 0.78)) : 0.7
 
         let secC = null
         best = 0
@@ -304,9 +361,9 @@ Popout {
         }
         const secH = secC ? secC.h : priH + 35
         const secS = secC ? (art ? Math.min(Math.max(secC.s, 0.25), 0.75)
-                                 : Math.min(Math.max(secC.s, 0.2), 0.4)) : priS * 0.7
+                                   : Math.min(Math.max(secC.s, 0.2), 0.4)) : priS * 0.7
         const secL = secC ? (art ? Math.min(Math.max(secC.l, 0.45), 0.8)
-                                 : Math.min(Math.max(secC.l, 0.7), 0.8)) : 0.74
+                                   : Math.min(Math.max(secC.l, 0.7), 0.8)) : 0.74
 
         let alC = null
         for (const c of clusters) {
@@ -314,7 +371,7 @@ Popout {
                 alC = c
         }
         const alHsl = alC ? (art ? [alC.h, Math.min(Math.max(alC.s, 0.4), 0.8),
-                                    Math.min(Math.max(alC.l, 0.5), 0.65)]
+                                      Math.min(Math.max(alC.l, 0.5), 0.65)]
                                  : [alC.h, Math.min(Math.max(alC.s, 0.35), 0.45), 0.66])
                           : [4, 0.4, 0.66]
 
