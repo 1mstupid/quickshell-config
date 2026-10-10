@@ -34,7 +34,7 @@ Singleton {
         onTriggered: root._barStateLoads = 2
     }
 
-    property color bg: "#0d1117"
+    property color bg: "#060706"
     property color altbg: "#161b22"
     property color fg: "#c9d1d9"
     property color border: "#30363d"
@@ -120,7 +120,6 @@ Singleton {
             if (m)
                 map[m[1]] = m[2]
         }
-        if (map["background"]) bg = map["background"]
         if (map["background-alt"]) altbg = map["background-alt"]
         if (map["foreground"]) fg = map["foreground"]
         if (map["border"]) border = map["border"]
