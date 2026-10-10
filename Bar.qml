@@ -12,24 +12,28 @@ PanelWindow {
 
     anchors { top: true }
 
-    implicitWidth: notch.width
-    implicitHeight: notch.height
+    readonly property real topGap: 8
 
-    exclusiveZone: notch.collapsedHeight
+    implicitWidth: pill.width
+    implicitHeight: pill.height + topGap
+
+    exclusiveZone: topGap + pill.collapsedHeight
 
     color: "transparent"
     visible: Theme.barStateReady
 
-    mask: Region { item: notch }
+    mask: Region { item: pill }
 
     Item {
-        id: notch
+        id: pill
 
-        readonly property real chamfer: 18
+        readonly property real radius: height / 2
         readonly property real collapsedWidth: 220
         readonly property real collapsedHeight: Theme.effectiveBarHeight
         readonly property real expandedHeight: 390
 
+        x: 0
+        y: root.topGap
         width: collapsedWidth
         height: root.expanded ? expandedHeight : collapsedHeight
 
@@ -37,21 +41,16 @@ PanelWindow {
             NumberAnimation { duration: 260; easing.type: Easing.OutCubic }
         }
 
-        Shape {
+        Behavior on width {
+            NumberAnimation { duration: 260; easing.type: Easing.OutCubic }
+        }
+
+        Rectangle {
             anchors.fill: parent
-
-            ShapePath {
-                fillColor: Qt.alpha(Theme.bg, 0.92)
-                strokeColor: Qt.alpha(Theme.accent, 0.6)
-                strokeWidth: 1
-
-                startX: 0; startY: 0
-                PathLine { x: notch.width;                 y: 0 }
-                PathLine { x: notch.width;                 y: notch.height - notch.chamfer }
-                PathLine { x: notch.width - notch.chamfer; y: notch.height }
-                PathLine { x: notch.chamfer;               y: notch.height }
-                PathLine { x: 0;                           y: notch.height - notch.chamfer }
-            }
+            radius: Math.min(width, height) / 2
+            color: Qt.alpha(Theme.bg, 0.92)
+            border.color: Qt.alpha(Theme.accent, 0.6)
+            border.width: 1
         }
 
         RowLayout {
@@ -62,10 +61,10 @@ PanelWindow {
                 left: parent.left
                 right: parent.right
                 topMargin: 6
-                leftMargin: 12
-                rightMargin: 12
+                leftMargin: 16
+                rightMargin: 16
             }
-            height: 15 
+            height: 15
             spacing: 12
 
             Clock {
@@ -95,10 +94,6 @@ PanelWindow {
                 anchors.fill: parent
                 columns: 3
                 spacing: 8
-                Volume {}
-                Launcher {}
-                Tray {}
-                Commands {}
             }
         }
     }
