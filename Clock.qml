@@ -31,7 +31,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: Qt.formatDateTime(clock.date, "h:mm:ss")
             font.family: Theme.font
-            font.pixelSize: 12
+            font.pixelSize: 15
             font.bold: true
             color: Theme.fg
         }

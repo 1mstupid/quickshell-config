@@ -60,11 +60,12 @@ PanelWindow {
                 top: parent.top
                 left: parent.left
                 right: parent.right
-                topMargin: 6
-                leftMargin: 16
-                rightMargin: 16
+                topMargin: 10
+                bottomMargin: 10
+                leftMargin: 10
+                rightMargin: 10
             }
-            height: 15
+            height: 10
             spacing: 12
 
             Clock {
