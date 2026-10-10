@@ -12,6 +12,8 @@ Media Media.qml
 MediaPopup MediaPopup.qml
 Metrics Metrics.qml
 Volume Volume.qml
+Space Space.qml
+Toggle Toggle.qml
 VolumePopup VolumePopup.qml
 Network Network.qml
 Tray Tray.qml

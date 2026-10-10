@@ -2,22 +2,19 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Wallpaper picker popup: a thumbnail grid of ~/.config/bspwm/wallpaper.
-// Picking one extracts a palette from the image right here (hidden Image →
-// Canvas histogram → HSL-derived semantic colors) and hands wallpaper +
-// palette to scripts/wallpaper-theme, which re-themes the whole desktop.
-// No pywal/wallust needed — quickshell is the color engine.
 Popout {
+    
     id: root
 
-    cardWidth: 176 * 3 + 2 * cardPadding
-    cardHeight: 4 * 103 + 2 * cardPadding
+    // Adjusted for a horizontal carousel layout
+    property int cardPadding: 20
+    cardWidth: 260 * 3 + cardPadding * 2 // Shows ~3 cards at once
+    cardHeight: 146 + cardPadding * 2
 
     property var wallpapers: []
     property string applyingPath: ""
     property bool randomPending: false
 
-    // re-scan the wallpaper dir on every open, so new files just show up
     onVisibleChanged: {
         if (visible)
             lister.running = true
@@ -33,11 +30,11 @@ Popout {
     function apply(path) {
         applyingPath = path
         if (!visible)
-            visible = true // canvas only renders inside a visible window
+            visible = true 
         canvas.loadImage("file://" + path)
     }
 
-    // sxhkd entry point: qs -p ~/.config/bspwm/quickshell ipc call wallpapers toggle
+    // Quickshell IPC Handler
     IpcHandler {
         target: "wallpapers"
         function toggle(): void { root.toggle() }
@@ -48,7 +45,6 @@ Popout {
     property var _found: []
     Process {
         id: lister
-        // no SVGs: Qt's loader chokes on ones with external references
         command: ["sh", "-c",
             "find -L \"" + Theme.configDir + "/../.local/share/wallpapers\" -maxdepth 1 -type f " +
             "\\( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \\) | sort"]
@@ -73,9 +69,6 @@ Popout {
     Item {
         anchors.fill: parent
 
-        // extraction surface — loadImage decodes the wallpaper full-size,
-        // drawImage-by-url scales it down here, getImageData samples it;
-        // sits behind the opaque grid (chrome comes from Popout)
         Canvas {
             id: canvas
             x: 0; y: 0
@@ -100,32 +93,45 @@ Popout {
                 ctx.clearRect(0, 0, width, height)
                 ctx.drawImage(url, 0, 0, width, height)
                 const data = ctx.getImageData(0, 0, width, height).data
-                unloadImage(url) // free the full-res decode (~20MB)
+                unloadImage(url) 
                 root.finish(data)
             }
         }
 
-        GridView {
-            id: grid
+        // Horizontal Carousel
+        ListView {
+            id: carousel
             anchors.fill: parent
+            anchors.margins: root.cardPadding
+            orientation: ListView.Horizontal
+            spacing: 16
             clip: true
-            cellWidth: 176
-            cellHeight: 103
-            cacheBuffer: 4000
             model: root.wallpapers
+
+            // Carousel snapping behavior
+            snapMode: ListView.SnapToItem
+            preferredHighlightBegin: width / 2 - 130
+            preferredHighlightEnd: width / 2 + 130
+            highlightRangeMode: ListView.StrictlyEnforceRange
 
             delegate: Item {
                 id: cell
+                required property int index 
                 required property string modelData
                 readonly property bool busy: root.applyingPath === modelData
-                width: grid.cellWidth
-                height: grid.cellHeight
+                
+                width: 260
+                height: 146
+                anchors.verticalCenter: parent.verticalCenter
 
                 Rectangle {
                     anchors.fill: parent
-                    anchors.margins: 4
-                    radius: 6
+                    radius: 8
                     color: Qt.alpha(Theme.fg, 0.06)
+                    
+                    // Hover scaling effect for the carousel
+                    scale: mouse.containsMouse ? 1.05 : 1.0
+                    Behavior on scale { NumberAnimation { duration: 150 } }
 
                     Image {
                         anchors.fill: parent
@@ -135,11 +141,12 @@ Popout {
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         clip: true
+                        layer.enabled: true // Smooths edges on rounded clip
                     }
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 6
+                        radius: 8
                         color: "transparent"
                         border.width: cell.busy ? 3 : mouse.containsMouse ? 2 : 0
                         border.color: cell.busy ? Theme.accent : Qt.alpha(Theme.accent, 0.8)
@@ -157,7 +164,10 @@ Popout {
                         id: mouse
                         anchors.fill: parent
                         hoverEnabled: true
-                        onClicked: root.apply(cell.modelData)
+                        onClicked: {
+                            carousel.currentIndex = index
+                            root.apply(cell.modelData)
+                        }
                     }
                 }
             }
@@ -201,7 +211,6 @@ Popout {
         return d > 180 ? 360 - d : d
     }
 
-    // WCAG relative luminance / contrast ratio, for the legibility floor below
     function luminance(hex) {
         const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
             .map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))
@@ -213,9 +222,6 @@ Popout {
         return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
     }
 
-    // hslToHex, but lifted (lightness only) until it reads against `bg` at
-    // `min`:1. Hue and saturation stay whatever the image earned; dark art
-    // with a saturated accent otherwise lands a primary you can't see.
     function legible(h, s, l, bg, min) {
         let hex = hslToHex(h, s, l)
         while (contrast(hex, bg) < min && l < 0.9) {
@@ -226,7 +232,6 @@ Popout {
     }
 
     function finish(d) {
-        // histogram: 4 bits/channel → up to 4096 bins, averaged per bin
         const bins = new Map()
         let total = 0
         for (let i = 0; i < d.length; i += 4) {
@@ -245,14 +250,8 @@ Popout {
             return { n: e[0], h, s, l }
         }).sort((a, b) => b.n - a.n).slice(0, 40)
 
-        // mode detection: designed artwork (theme wallpapers, logos) packs
-        // its pixels into a few flat-color clusters — its palette IS the
-        // image, so trust the artist's values (fidelity). Photographs smear
-        // across hundreds of bins — no designed palette exists, so interpret
-        // with the pastel tuning modeled on nord/everforest.
         const art = clusters.slice(0, 8).reduce((s, c) => s + c.n, 0) / total > 0.85
 
-        // bg: dominant dark cluster, clamped deep for contrast
         let bgC = clusters[0]
         let best = -1
         for (const c of clusters) {
@@ -263,13 +262,6 @@ Popout {
         const bgL = art ? Math.min(Math.max(bgC.l, 0.09), 0.2)
                         : Math.min(Math.max(bgC.l * 0.7, 0.1), 0.17)
 
-        // beacon: a tiny bright hue-distinct cluster reads as a light
-        // source (lamp, neon, sunset sliver) — semantically the image's
-        // accent even though a histogram barely sees it. Scanned over all
-        // bins: a beacon is exactly the thing too small for the top-40.
-        // Bounds: bright against the ground, some color (glows run
-        // desaturated), and rare — common enough and the normal primary
-        // pass already owns it.
         let bea = null
         {
             const cand = []
@@ -288,9 +280,6 @@ Popout {
             }
         }
 
-        // primary: the beacon when there is one — else the most vibrant
-        // thing with real presence. The secondary pass below then picks
-        // up the dominant field hue on its own.
         let priC = bea
         best = 0
         if (!priC)
@@ -305,7 +294,6 @@ Popout {
         const priL = priC ? (art ? Math.min(Math.max(priC.l, 0.45), 0.75)
                                  : Math.min(Math.max(priC.l, 0.62), 0.78)) : 0.7
 
-        // secondary: vibrant and hue-distinct from primary, else shifted primary
         let secC = null
         best = 0
         for (const c of clusters) {
@@ -320,7 +308,6 @@ Popout {
         const secL = secC ? (art ? Math.min(Math.max(secC.l, 0.45), 0.8)
                                  : Math.min(Math.max(secC.l, 0.7), 0.8)) : 0.74
 
-        // alert: reddest cluster if the image has one, else a stock red
         let alC = null
         for (const c of clusters) {
             if ((c.h <= 20 || c.h >= 340) && c.s > 0.35 && (!alC || c.n > alC.n))
@@ -331,31 +318,23 @@ Popout {
                                  : [alC.h, Math.min(Math.max(alC.s, 0.35), 0.45), 0.66])
                           : [4, 0.4, 0.66]
 
-        // fg: warm cream (everforest-style) rather than near-white — borrow
-        // the image's warmest muted hue when it has one, else a stock beige
         let fgH = 42
         for (const c of clusters) {
             if (c.h >= 20 && c.h <= 60 && c.l > 0.3) { fgH = c.h; break }
         }
 
-        // legibility floor: 4.5:1 for accents (readable text), 3:1 for disabled
         const bg = hslToHex(bgH, bgS, bgL)
         const palette = [
-            bg,                                         // bg
-            hslToHex(bgH, bgS, bgL + 0.06),             // altbg
-            hslToHex(fgH, 0.2, 0.78),                   // fg
-            hslToHex(priH, 0.18, bgL + 0.1),            // border
-            legible(priH, priS, priL, bg, 4.5),         // primary
-            legible(secH, secS, secL, bg, 4.5),         // secondary
-            legible(alHsl[0], alHsl[1], alHsl[2], bg, 4.5), // alert
-            legible(bgH, 0.1, 0.4, bg, 3.0)             // disabled
+            bg,
+            hslToHex(bgH, bgS, bgL + 0.06),
+            hslToHex(fgH, 0.2, 0.78),
+            hslToHex(priH, 0.18, bgL + 0.1),
+            legible(priH, priS, priL, bg, 4.5),
+            legible(secH, secS, secL, bg, 4.5),
+            legible(alHsl[0], alHsl[1], alHsl[2], bg, 4.5),
+            legible(bgH, 0.1, 0.4, bg, 3.0)
         ]
 
-        // terminal ANSI palette (kitty): image hues placed in their nearest
-        // SEMANTIC slot — green things stay green, blue things blue — so
-        // color-coded output (diffs, ls, test runners) keeps meaning on any
-        // wallpaper. The red slot keeps the alert hue; slots the image has
-        // no hue near are synthesized at the slot's anchor hue.
         const terms = new Array(6)
         terms[0] = alC ? alC : { h: 4, s: 0.4, l: 0.66 }
         const anchors = [[1, 120], [2, 55], [3, 225], [4, 300], [5, 180]]
@@ -365,7 +344,6 @@ Popout {
             .sort((a, b) => b.s * Math.sqrt(b.n) - a.s * Math.sqrt(a.n))
             .slice(0, 8)
         for (let pass = 0; pass < anchors.length; pass++) {
-            // greedy best pair; unmatched slots (dist > 45) get synthesized
             let bi = -1, bc = -1, bd = 46
             for (const [i, a] of anchors) {
                 if (terms[i]) continue
@@ -377,7 +355,6 @@ Popout {
             if (bi < 0) break
             terms[bi] = cands[bc]; cands[bc] = null
         }
-        // synthesized slots speak more softly than hues the image earned
         for (const [i, a] of anchors)
             if (!terms[i]) terms[i] = { h: a, s: art ? 0.5 : 0.4, l: 0.62 }
 
@@ -388,7 +365,6 @@ Popout {
         ansi[15] = hslToHex(fgH, 0.18, 0.86)
         for (let i = 0; i < 6; i++) {
             const t = terms[i]
-            // fidelity: each hue keeps its own body; pastel: uniform wash
             const s = art ? Math.min(Math.max(t.s, 0.35), 0.8) : 0.4
             const l = art ? Math.min(Math.max(t.l, 0.5), 0.7) : 0.66
             ansi[i + 1] = legible(t.h, s, l, bg, 4.0)

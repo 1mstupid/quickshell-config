@@ -12,6 +12,8 @@ ShellRoot {
     // This instantiates the notification toast window.
     NotificationToast {}
 
+    WallpaperPicker {}
+
     Variants {
         model: Quickshell.screens
 

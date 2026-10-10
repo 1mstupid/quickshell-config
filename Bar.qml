@@ -1,117 +1,106 @@
 import QtQuick
+import QtQuick.Shapes
+import QtQuick.Layouts
 import Quickshell
 
-// Floating pill bar. Under mango this remains a wlr-layer-shell panel;
-// the compositor reserves the panel's effective height.
 PanelWindow {
     id: root
 
     property var modelData
     screen: modelData
+    property bool expanded: false
 
-    anchors {
-        top: true
-        left: true
-        right: true
-    }
+    anchors { top: true }
 
-    // Extra height gives the pill room to breathe around its contents.
-    implicitHeight: Theme.effectiveBarHeight + 12
+    implicitWidth: notch.width
+    implicitHeight: notch.height
+
+    exclusiveZone: notch.collapsedHeight
 
     color: "transparent"
     visible: Theme.barStateReady
 
-    Rectangle {
-        id: panel
+    mask: Region { item: notch }
 
-        anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-            bottom: parent.bottom
+    Item {
+        id: notch
 
-            leftMargin: 8
-            rightMargin: 8
-            topMargin: 6
-            bottomMargin: 6
+        readonly property real chamfer: 18
+        readonly property real collapsedWidth: 560
+        readonly property real collapsedHeight: Theme.effectiveBarHeight
+        readonly property real expandedHeight: 390
+
+        width: collapsedWidth
+        height: root.expanded ? expandedHeight : collapsedHeight
+
+        Behavior on height {
+            NumberAnimation { duration: 260; easing.type: Easing.OutCubic }
         }
 
-        radius: height / 2
+        Shape {
+            anchors.fill: parent
 
-        color: Qt.alpha(Theme.bg, 0.85)
+            ShapePath {
+                fillColor: Qt.alpha(Theme.bg, 0.92)
+                strokeColor: Qt.alpha(Theme.accent, 0.6)
+                strokeWidth: 1
 
-        border {
-            width: 1
-            color: Qt.alpha(Theme.accent, 0.25)
-        }
-
-        Behavior on color {
-            ColorAnimation {
-                duration: 400
+                startX: 0; startY: 0
+                PathLine { x: notch.width;                 y: 0 }
+                PathLine { x: notch.width;                 y: notch.height - notch.chamfer }
+                PathLine { x: notch.width - notch.chamfer; y: notch.height }
+                PathLine { x: notch.chamfer;               y: notch.height }
+                PathLine { x: 0;                           y: notch.height - notch.chamfer }
             }
         }
 
-        Behavior on border.color {
-            ColorAnimation {
-                duration: 400
-            }
-        }
-
-        Row {
-            id: leftCluster
+        RowLayout {
+            id: bar
 
             anchors {
+                top: parent.top
                 left: parent.left
+                right: parent.right
+                topMargin: 2
                 leftMargin: 12
-                verticalCenter: parent.verticalCenter
+                rightMargin: 12
             }
-
-            spacing: 8
+            height: 15 
+            spacing: 12
 
             Launcher {}
-            Tags {}
+            Clock {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+            }
         }
 
-        Title {
-            anchors.verticalCenter: parent.verticalCenter
-
-            readonly property real gapL:
-                leftCluster.x + leftCluster.width + 24
-
-            readonly property real gapR:
-                rightCluster.x - 24
-
-            width: Math.max(
-                0,
-                Math.min(implicitWidth, gapR - gapL)
-            )
-
-            x: Math.max(
-                gapL,
-                Math.min(
-                    (parent.width - width) / 2,
-                    gapR - width
-                )
-            )
-
-            visible: width > 40
-        }
-
-        Row {
-            id: rightCluster
+        Item {
+            id: dashboard
 
             anchors {
+                top: bar.bottom
+                left: parent.left
                 right: parent.right
-                rightMargin: 12
-                verticalCenter: parent.verticalCenter
+                bottom: parent.bottom
+                margins: 12
+            }
+            opacity: root.expanded ? 1 : 0
+            visible: opacity > 0
+
+            Behavior on opacity {
+                NumberAnimation { duration: 90 }
             }
 
-            spacing: 6
-
-            Volume {}
-            Tray {}
-            Clock {}
-            Commands {}
+            Grid {
+                anchors.fill: parent
+                columns: 3
+                spacing: 8
+                Volume {}
+                Launcher {}
+                Tray {}
+                Commands {}
+            }
         }
     }
 }
