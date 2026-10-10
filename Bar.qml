@@ -27,7 +27,7 @@ PanelWindow {
     Item {
         id: pill
 
-        readonly property real radius: height / 2
+        readonly property real radius: height / 2 
         readonly property real collapsedWidth: 220
         readonly property real collapsedHeight: Theme.effectiveBarHeight
         readonly property real expandedHeight: 390
@@ -47,7 +47,7 @@ PanelWindow {
 
         Rectangle {
             anchors.fill: parent
-            radius: Math.min(width, height) / 2
+            radius: Math.min(width, height) / 2 - 5
             color: Qt.alpha(Theme.bg, 0.92)
             border.color: Qt.alpha(Theme.accent, 0.6)
             border.width: 1
